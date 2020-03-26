@@ -10,4 +10,5 @@ router.post('/signup', userapicontrollers.signup);
 
 router.post('/otppage/:userid', userapicontrollers.checkOTP);
 
+
 module.exports = router;

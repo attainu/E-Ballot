@@ -7,8 +7,8 @@ const transportOptions = {
   secure: true,
   debug: 'development',
   auth:{
-    user:process.env.EMAIL,
-    pass:process.env.PASSWORD
+    user:'akshay28venkat1@gmail.com',
+    pass:'sscdvkiqtvctgsee'
   }
 };
 
@@ -22,7 +22,7 @@ const sendMailToUser = async(email, OTP)=>{
   try{
     console.log(email)
     await mailTransport.sendMail({
-      from: process.env.EMAIL,
+      from: 'akshay28venkat1@gmail.com',
       to: email,
       subject: 'OTP Send',
       text: `OTP to Conform ${OTP}`

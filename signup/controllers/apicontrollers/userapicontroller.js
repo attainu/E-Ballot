@@ -16,7 +16,7 @@ module.exports = {
         logdetails.ip = ip.address();
         logdetails.user = user._id;
         logdetails.save();
-        res.redirect('/');
+        res.redirect('/comission');
       })
       .catch( function(err){
         res.send(err);

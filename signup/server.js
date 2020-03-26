@@ -9,6 +9,8 @@ const app = express();
 const usernormalroutes = require('./routes/normalroutes/usernormalroutes');
 const userapiroutes = require('./routes/apiroutes/userapiroutes');
 
+const fileapiroutes = require('./routes/apiroutes/fileapiroutes');
+
 app.use(express.static(path.join(__dirname, 'static')))
 
 app.set("view engine", "hbs");
@@ -28,10 +30,13 @@ app.use(
     }
   })
 );
+
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 
 app.use(usernormalroutes);
 app.use(userapiroutes);
+
+app.use(fileapiroutes);
 
 app.listen(1234);
