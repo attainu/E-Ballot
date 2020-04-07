@@ -10,12 +10,12 @@ var userSchema = new Schema(
       required: true,
       trim: true
     },
-    Company_name: {
+    company_name: {
       type: String,
       required: true,
       trim: true
     },
-    Company_email: {
+    email: {
       unique: true,
       type: String,
       required: true,
@@ -41,6 +41,34 @@ var userSchema = new Schema(
       type:Number,
       unique: true,
       trim: true
+    },
+    electionid:[
+      {
+        type: Schema.Types.ObjectId,
+        ref:"election"
+      }
+    ],
+    blog:[
+      {
+        type: Schema.Types.ObjectId,
+        ref: "blog"
+      }
+    ],
+    comments:[
+      {
+        type: Schema.Types.ObjectId,
+        ref: "comment"
+      }
+    ],
+    news:[
+      {
+        type: Schema.Types.ObjectId,
+        ref: "news"
+      }
+    ],
+    token:{
+      type: String,
+      unique: true
     }
   },
   { timestamps: true }
@@ -50,10 +78,9 @@ var userSchema = new Schema(
 userSchema.statics.findByEmailAndPassword = function(email, password) {
   var userObj = null;
   return new Promise(function(resolve, reject) {
-    console.log("Schema email: "+email)
-    User.findOne({ Company_email: email })
+    User.findOne({ email: email })
       .then(function(user) {
-        console.log('Schema User: '+user)
+        console.log('Schema User: '+ user )
         if (!user) reject("Incorrect credentials");
         userObj = user;
         return bcrypt.compare(password, user.password);
@@ -67,7 +94,6 @@ userSchema.statics.findByEmailAndPassword = function(email, password) {
       });
   });
 };
-
 
 // I should avoid rehashing the password twice.
 userSchema.pre("save", function(next) {

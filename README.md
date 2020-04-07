@@ -1,2 +1,1 @@
-# E-Ballot
-Project by Nagarjun and Akshay
+# E-ballot

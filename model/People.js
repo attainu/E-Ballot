@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 var bcrypt = require("bcryptjs");
-// var Todo = require("./Todo");
+
 var Schema = mongoose.Schema;
 
 var peopleSchema = new Schema(
@@ -72,26 +72,26 @@ var peopleSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "blog"
     }],
-    likes:[{
-      type: Schema.Types.ObjectId,
-      ref: "like"
-    }],
     comments:[{
       type: Schema.Types.ObjectId,
       ref: "comment"
-    }]
+    }],
+    token:{
+      type: String,
+      unique: true
+    }
   },
   { timestamps: true }
 );
-
 
 peopleSchema.statics.findByEmailAndPassword = function(email, password) {
   var userObj = null;
   return new Promise(function(resolve, reject) {
     console.log("Schema email: "+email)
-    User.findOne({ Company_email: email })
+    console.log("Schema Password: "+password)
+    People.findOne({ email: email })
       .then(function(user) {
-        console.log('Schema User: '+user)
+        // console.log('Schema User: '+user)
         if (!user) reject("Incorrect credentials");
         userObj = user;
         return bcrypt.compare(password, user.password);
@@ -105,7 +105,6 @@ peopleSchema.statics.findByEmailAndPassword = function(email, password) {
       });
   });
 };
-
 
 // I should avoid rehashing the password twice.
 peopleSchema.pre("save", function(next) {

@@ -6,8 +6,8 @@ const router = Router();
 
 router.post('/news/createnews/:electionid', autheticate, createNews);
 
-router.patch('/news/updatenews/:electionid/:newsid', autheticate, updateNews);
+router.patch('/news/updatenews/:newsid', autheticate, updateNews);
 
-router.delete('/news/deletenews/:electionid/:newsid', autheticate, deleteNews);
+router.delete('/news/deletenews/:newsid', autheticate, deleteNews);
 
 module.exports = router;

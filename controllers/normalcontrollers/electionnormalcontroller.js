@@ -5,8 +5,7 @@ const Election = require('../../model/Election');
 module.exports = {
   async resultElection(req, res){
     try {
-      var userid = req.headers.userid;
-      var electionid = req.headers.electionid;
+      var electionid = req.params.electionid;
       
       var election = await Election.findById({_id: electionid})
 

@@ -1,4 +1,5 @@
 const People = require('../../model/People');
+const User =require('../../model/User');
 const Blog = require('../../model/Blog');
 const Election = require('../../model/Election');
 
@@ -8,64 +9,90 @@ module.exports = {
   async createBlog(req, res){
     try{
       // When Move to live change the req.headers.userid to req.session.userid
-      var userid = req.headers.userid;
-      var people = await People.findById({_id: userid});
-      console.log("Type People: "+people.type)
+      var user = req.user[0];
 
+      var electionid = req.params.electionid;
+      console.log("electionid: "+electionid)
+      const election = await Election.findOne({_id: electionid});
+      if(!election){
+        let error = new Error('Election is Invalid');
+        error.statusCode = 401;
+        throw error
+      }
       var blog = new Blog({...req.body})
-      blog.type = people.type;
-      blog.userid = people._id;
-      blog.electionid = people.electionid;
+      blog.userid = user._id;
+      blog.electionid = electionid;
       await blog.save();
 
-      await People.update({_id: userid}, { $push:{ blog: blog._id}})
+      await People.update({_id: user._id}, { $push:{ blog: blog._id}})
 
-      await Election.update({_id: people.electionid}, { $push:{ blogs: blog._id }});
+      await User.update({_id: user._id}, { $push:{ blog: blog._id}})
 
-      var getpeopledata = await People.find({isEmailNotification: true, ec: people.ec, type: "voter"})
+      await Election.update({_id: electionid}, { $push:{ blogs: blog._id }});
+
+      var getpeopledata = await People.find({isEmailNotification: true, electionid: electionid, type: "voter"})
       for(var i = 0; i< getpeopledata.length; i++){
         await sendBlogMail(getpeopledata[i].email, getpeopledata[i].name, getpeopledata[i].title)
       }
     }catch(err){
-      console.log(err)
+      res.json({error: error.message}).status(error.statusCode)
     }
   },
 
   async updateblog(req, res){
     try{
       var blogid = req.params.blogid;
-      var userid = req.headers.userid;
+      var user = req.user[0];
       
       var blogs = await Blog.updateOne(
-        {_id: blogid, userid: userid},
+        {_id: blogid, userid: user._id},
         { ...req.body},
         {new: true}
       )
-      res.json(blogs)
+      res.json(blogs).status(200)
     }catch(err){
-      console.log(err)
+      res.json({error: error.message}).status(500)
     }
   },
 
   async deteletBlog(req, res){
     try{
       var blogid = req.params.blogid;
-      var userid = req.headers.userid;
+      var users = req.user;
       
-      var people = await People.findById({_id: userid});
-
-      var userpull = await People.update(
-        {_id: userid},
-        { $pull: {blog: blogid}}
-      )
-      await Election.update({_id: people.electionid}, { $pull:{ blogs: blog._id }});
-
-      var blogdel = await Blog.deleteOne({_id: blogid, userid: userid})
+      var electionid = req.params.electionid;
       
-      res.json(blogdel, userpull).statucode(200);
+      console.log(blogid, users._id, electionid);
+
+      var people = await People.findOne({_id: users._id, blog:blogid} );
+      // console.log(people)
+      if(people){
+        console.log("People ")  
+        await People.update(
+          {_id: users._id},
+          { $pull: {blog: blogid}}
+        )
+      }
+
+      var user = await User.findOne({_id: users._id, blog:blogid} )
+      // console.log(user)
+      if(user){
+        // console.log("user")
+        // console.log(users._id)
+        await User.update(
+          {_id: users._id},
+          { $pull: {blog: blogid}}
+        )
+      }
+      
+      await Election.update({_id: electionid}, { $pull:{ blogs: blogid }});
+
+      await Blog.deleteOne({_id: blogid, userid: users._id})
+      
+      res.send('Blog Deleted').status(200)
 
     }catch(err){
-      console.log(err)
+      res.json({error: error.message}).status(error.statusCode)
     }
   }
 }
