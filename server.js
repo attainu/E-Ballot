@@ -1,9 +1,9 @@
 require('./db');
-
+// Npm packages
 const express = require('express');
 
 const app = express();
-
+// third party
 const userapiroutes = require('./routes/apiroutes/userapiroutes');
 
 const fileapiroutes = require('./routes/apiroutes/fileapiroutes');
@@ -19,6 +19,8 @@ const blognormalroutes = require('./routes/normalroutes/blognormalroutes');
 const newsnormalroutes = require('./routes/normalroutes/newsnormalroutes');
 const electionnormalroutes = require('./routes/normalroutes/electionnormalroutes');
 
+
+// Used for the getting the input in a jspn format
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 

@@ -72,13 +72,9 @@ var peopleSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "blog"
     }],
-    comments:[{
-      type: Schema.Types.ObjectId,
-      ref: "comment"
-    }],
     token:{
       type: String,
-      unique: true
+      default: null
     }
   },
   { timestamps: true }
@@ -87,8 +83,6 @@ var peopleSchema = new Schema(
 peopleSchema.statics.findByEmailAndPassword = function(email, password) {
   var userObj = null;
   return new Promise(function(resolve, reject) {
-    console.log("Schema email: "+email)
-    console.log("Schema Password: "+password)
     People.findOne({ email: email })
       .then(function(user) {
         // console.log('Schema User: '+user)

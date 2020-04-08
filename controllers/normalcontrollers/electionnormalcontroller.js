@@ -7,7 +7,10 @@ module.exports = {
     try {
       var electionid = req.params.electionid;
       
-      var election = await Election.findById({_id: electionid})
+      var election = await Election.findOne({_id: electionid})
+      if(!election){
+        return res.json({errormessage: "Election is not found"}).status(401);
+      }
 
       let date = new Date();
       var  month = date.getMonth()+1;
@@ -32,15 +35,10 @@ module.exports = {
         sec = "0"+date.getSeconds()
       }
       const today = date.getFullYear()+"-"+month+"-"+tdate+"T"+hour+":"+mins+":"+sec+".000Z";
-      console.log(today)
-      console.log(election.end_time);
 
       let electionenddate = new Date(election.end_time);
       let currentdate = new Date(today);
       
-      console.log("End Date: "+ electionenddate.getTime());
-      console.log("Current Date: "+ currentdate.getTime())
-
       if(electionenddate.getTime() < currentdate.getTime()){
         var FinalizeList = []
         var votercount = 0;
@@ -59,10 +57,13 @@ module.exports = {
         FinalizeList.push("Voters Count: "+votercount);
         FinalizeList.push("Remaining VOters Count: "+ NoVoters);
         // console.log(votercount)
-        res.send(FinalizeList)
+        return res.send(FinalizeList)
+      }
+      else{
+        return res.json({errormessage: "Election is not Completed"}).status(401);
       }
     } catch (error) {
-      console.log(error)
+      res.json({message: error.message})
     }
   }
 }

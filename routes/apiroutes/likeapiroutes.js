@@ -4,6 +4,6 @@ const autheticate = require('../../middleware/autheticate');
 
 const router = Router();
 
-router.post('/blog/like/:blogid', likeBlog)
+router.post('/blog/like/:blogid',autheticate, likeBlog)
 
 module.exports = router

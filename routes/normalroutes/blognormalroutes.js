@@ -4,8 +4,8 @@ const autheticate = require('../../middleware/autheticate');
 
 const router = Router();
 
-router.get('/blog/view', autheticate, viewBlog);
+router.get('/blog/:blogid',  viewBlog);
 
-router.get('/election/blog/view/:electionid', autheticate, electionViewBlog);
+router.get('/election/blog/:electionid', electionViewBlog);
 
 module.exports = router;

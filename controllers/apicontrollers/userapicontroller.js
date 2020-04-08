@@ -24,9 +24,16 @@ module.exports = {
   async signup(req, res){
     try{
       var checkMail = await User.findOne({email: req.body.email})
-      console.log(checkMail)
+      // console.log(checkMail)
       if(checkMail){
         let error = new Error('Email is Already Registered');
+        error.statusCode = 401;
+        throw error
+      }
+      // Check the Phone number should be equal to 10
+      var checknumber = req.body.ph_no.split("")
+      if(checknumber.length !== 10){
+        let error = new Error('Phone Number should be equal to length 10');
         error.statusCode = 401;
         throw error
       }
@@ -39,10 +46,10 @@ module.exports = {
       await sendMail(email, user.emailOTP);
       // Create the token for the user to access
       jwt.sign({id: user._id}, privateKey, async (err, token)=>{
+        
         var users = await User.update({_id: user._id}, { $set: { token: token }})
-        res.json(users).send(200) 
+        res.json({success: "User data is added",token: token}).status(200) 
       });
-      
     }
     catch(err){
       if(!err.statusCode){
@@ -55,7 +62,12 @@ module.exports = {
   async checkOTP(req, res){
     try{
       var user = req.user;
-
+      var otp = req.body.otp;
+      if(!otp){
+        let error = new Error('Enter the OTP');
+        error.statusCode = 400;
+        throw error
+      }
       // Check the user is in the User and People DB and get the OTP
       var users = await User.findOne({_id: user._id})
       if(users !== null){
@@ -67,8 +79,11 @@ module.exports = {
         var checkOTP = peoples.emailOTP
         var isotp = "people"
       }
-      // Getting the OTP from USer
-      var otp = req.body.otp;
+      if(!checkOTP){
+        let error = new Error('OTP is already Verified');
+        error.statusCode = 400;
+        throw error
+      }
       // CHeck the USer OTP and DB OTP is same or not
       if(otp == checkOTP){
         // Change the OTP into null once the OTP is correct
@@ -77,8 +92,8 @@ module.exports = {
           res.json(otpuser)
         }
         else if( isotp === "people"){
-          var otppeople = await People.updateOne({_id: user._id}, { emailOTP: null })
-          res.json(otppeople)
+          await People.updateOne({_id: user._id}, { emailOTP: null })
+          res.json({Successmessage: "OTP is Correct"}).status(200)
         }
       }
       else{
@@ -87,7 +102,7 @@ module.exports = {
         throw error
       }
     }catch(err){
-      res.json({error:err.message}).status(500)
+      res.json({message:err.message, status: err.statusCode}).status(err.statusCode)
     }
   },
 
@@ -115,21 +130,21 @@ module.exports = {
 
   async logout(req, res){
     try {
-      var user = req.user[0];
+      var user = req.user;
       // console.log(user)
       const users = await User.findById({_id: user._id});
-      console.log("User: "+ users)
+      // console.log("User: "+ users)
       if(users !== null)
       {
-        await User.update(
+        await User.updateOne(
           {_id: user._id},
           { $set: { token : null } }
         )
       }
       const people = await People.findById({_id: user._id});
-      console.log("People: "+people)
+      // console.log("People: "+people)
       if(people !== null){
-        await People.update(
+        await People.updateOne(
           {_id: user._id},
           { $set: { token: null } }
         )

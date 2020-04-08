@@ -1,54 +1,26 @@
 const People = require('../../model/People');
-const { sendNomineeInvitation, sendVotterInvitation } = require('../../utils/sendEmail');
+const { sendFileInvitation } = require('../../utils/sendEmail');
 
 
 module.exports = {
-  async nomineeinvitation(req, res){
+  async fileinvitation(req, res){
     try{
-      
-      var peopledata = await People.findOne({electionid: req.params.electionid})
+      var user = req.user;
+      var peopledata = await People.find({electionid: req.params.electionid, user: user._id})
+      // check for the data for the election
       if(!peopledata){
-        let error = new Error('Choose the proper selection');
-        error.statusCode = 409;
-        throw error
+        return res.json({message: "No User Data available for this election. Kindly upload the file to send the data"}).status(err.statusCode)
       }
-      console.log(peopledata.length);
+      // sending the username and password
       for(var i = 0; i < peopledata.length; i++){
-        if(peopledata[i].type === "nominee"){
-          await sendNomineeInvitation(peopledata[i].email, peopledata[i].ph_no,req.body.date)
-        }
+        await sendFileInvitation(peopledata[i].email, peopledata[i].ph_no,req.body.date)
       }
       res.json({message: "Email send Sucessfuly"}).status(200)
     }catch(err){
       if(!err.statusCode){
         err.statusCode = 500;
       }
-      res.json({message: err.message}).status(err.statusCode)
+      return res.json({message: "No User Data available for this election. Kindly upload the file to send the data or else you choosen the wrong election id"}).status(err.statusCode)
     } 
-      
-  },
-
-  async voterinvitation(req, res){
-    try{
-      var peopledata = await People.findOne({electionid: req.params.electionid})
-      if(!peopledata){
-        let error = new Error('Choose the proper selection');
-        error.statusCode = 409;
-        throw error
-      }
-      console.log(peopledata.length);
-      for(var i = 0; i < peopledata.length; i++){
-        if(peopledata[i].type === "voter"){
-          await sendVotterInvitation(peopledata[i].email, peopledata[i].ph_no,req.body.date)
-        }
-      }
-      res.json({message: "Email send Sucessfuly"}).status(200)
-    }catch(err){
-      if(!err.statusCode){
-        err.statusCode = 500;
-      }
-      res.json({message: err.message}).status(err.statusCode)
-    } 
-      
-  },
+  }
 }

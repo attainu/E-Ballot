@@ -3,11 +3,10 @@ const People = require('../model/People');
 
 module.exports = async (req, res, next)=>{
   const authHeader = req.header('Authorization')
+  console.log(authHeader)
   // Check the Headers passed or not
   if(!authHeader){
-    const error = new Error('Not Autheticated.');
-    error.statusCode = 401;
-    throw error;
+    return res.json({message: 'Not Autheticated.'}).status(401);
   }
   // Check for the token is related to the User db
   const user = await User.findOne({token: authHeader});

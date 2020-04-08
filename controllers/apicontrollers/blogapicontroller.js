@@ -2,6 +2,7 @@ const People = require('../../model/People');
 const User =require('../../model/User');
 const Blog = require('../../model/Blog');
 const Election = require('../../model/Election');
+const Comment = require('../../model/Comment');
 
 const { sendBlogMail } = require('../../utils/sendEmail');
 
@@ -9,16 +10,19 @@ module.exports = {
   async createBlog(req, res){
     try{
       // When Move to live change the req.headers.userid to req.session.userid
-      var user = req.user[0];
-
+      var user = req.user;
       var electionid = req.params.electionid;
-      console.log("electionid: "+electionid)
+      
+      var checkBLog = await Blog.findOne({title: req.body.title});
+      if(checkBLog){
+        return res.json({message: "Blog is already created."}).status(401);
+      }
+
       const election = await Election.findOne({_id: electionid});
       if(!election){
-        let error = new Error('Election is Invalid');
-        error.statusCode = 401;
-        throw error
+        return res.json({message: "BElection is Invalid."}).status(401);
       }
+
       var blog = new Blog({...req.body})
       blog.userid = user._id;
       blog.electionid = electionid;
@@ -31,27 +35,39 @@ module.exports = {
       await Election.update({_id: electionid}, { $push:{ blogs: blog._id }});
 
       var getpeopledata = await People.find({isEmailNotification: true, electionid: electionid, type: "voter"})
+
       for(var i = 0; i< getpeopledata.length; i++){
         await sendBlogMail(getpeopledata[i].email, getpeopledata[i].name, getpeopledata[i].title)
       }
+      res.json({message:"Blog created Successfully!", _id: blog._id}).statusCode(200);
     }catch(err){
-      res.json({error: error.message}).status(error.statusCode)
+      res.json({error: err.message}).status(500)
     }
   },
 
   async updateblog(req, res){
     try{
       var blogid = req.params.blogid;
-      var user = req.user[0];
+      var user = req.user;
       
-      var blogs = await Blog.updateOne(
+      var checkBLog = await Blog.findOne({title: req.body.title});
+      if(checkBLog){
+        return res.json({message: "Blog is already created."}).status(401);
+      }
+
+      var existingBlog = await Blog.findOne({_id: blogid});
+      if(!existingBlog){
+        return res.json({message: "Create the BLog first before Update"}).status(404);
+      }
+
+      await Blog.updateOne(
         {_id: blogid, userid: user._id},
         { ...req.body},
         {new: true}
       )
-      res.json(blogs).status(200)
+      res.json({message: "Blog is Updated"}).status(200)
     }catch(err){
-      res.json({error: error.message}).status(500)
+      res.json({error: err.message}).status(500)
     }
   },
 
@@ -62,12 +78,15 @@ module.exports = {
       
       var electionid = req.params.electionid;
       
-      console.log(blogid, users._id, electionid);
+      var existingBlog = await Blog.findOne({_id: blogid});
+      if(!existingBlog){
+        return res.json({message: "Blog is already Deleted or not yet created"}).status(404);
+      }
+      // console.log(blogid, users._id, electionid);
 
       var people = await People.findOne({_id: users._id, blog:blogid} );
       // console.log(people)
       if(people){
-        console.log("People ")  
         await People.update(
           {_id: users._id},
           { $pull: {blog: blogid}}
@@ -89,10 +108,12 @@ module.exports = {
 
       await Blog.deleteOne({_id: blogid, userid: users._id})
       
+      await Comment.deleteMany({blog: blogid});
+
       res.send('Blog Deleted').status(200)
 
     }catch(err){
-      res.json({error: error.message}).status(error.statusCode)
+      res.json({error: err.message}).status(err.statusCode)
     }
   }
 }

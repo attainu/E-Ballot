@@ -5,21 +5,23 @@ module.exports = {
     try {
       var electionid = req.params.electionid;
       var user = req.user;
+
+      var checkNews = await News.findOne({title: req.body.title, electionid: electionid})
+      if(checkNews){
+        return res.json({message: "Title of the news is already created"}).status(500)
+      }
       // check for the users is autherizoed to create a News
-      var users = await User.find({_id: user._id})
-      if(users.length === 0 ){
-        let error = new Error('You are not a autherizoed person to create the News');
-        error.statusCode = 401;
-        throw error;
+      var users = await User.findOne({_id: user._id})
+      if(!users){
+        return res.json({message: 'You are not a autherizoed person to create the News'}).status(401)
       }
-      else if(users.length === 1){
-        var news = await News.create({...req.body});
-        news.electionid = electionid
-        news.user = user._id;
-        await news.save();
-        await User.updateOne({_id: user._id},{ $push: { news: news._id }})
-        res.json(news)
-      }
+      
+      var news = await News.create({...req.body});
+      news.electionid = electionid
+      news.user = user._id;
+      await news.save();
+      await User.updateOne({_id: user._id},{ $push: { news: news._id }})
+      res.json({message: "NEWS Created Sucessfully !!", _id: news._id}).status(200)
 
     } catch (error) {
       if(!error.statusCode){
@@ -33,14 +35,18 @@ module.exports = {
     try{
       var newsid = req.params.newsid;
       var user = req.user;
+      
+      var checkNews = await News.findOne({title: req.body.title, _id: newsid})
+      if(checkNews){
+        return res.json({message: "Title of the news is already created"}).status(500)
+      }
 
       var users = await User.findOne({_id: user._id})
       console.log(users)
       if(!users){
-        let error = new Error('You are not a authriozed person to edit the election datas');
-        error.statusCode = 500;
-        throw error;
+        return res.json({message: 'You are not a autherizoed person to Edit the News'}).status(401)
       }
+
       var news = await News.updateOne({_id: newsid},{...req.body}, { new: true});
       res.json({message: "Election Data is updated"}).status(200)
     } catch (error) {
@@ -51,22 +57,23 @@ module.exports = {
   async deleteNews(req, res){
     try {
       var newsid = req.params.newsid;
-      var user = req.user[0];
-      
+      var user = req.user;
+      var checkNews = await News.findOne({_id: newsid});
+      if(!checkNews){
+        return res.json({message: 'News is Deleted or not yet created'}).status(401)
+      }
       var users = await User.findOne({_id: user._id})
       console.log(user)
       if(!users){
-        let error = new Error('You are not a authriozed person to Delete the election datas');
-        error.statusCode = 500;
-        throw error;
+        return res.json({message: 'You are not a autherizoed person to Delete the News'}).status(401)
       }
-      else if(users.length === 1){
-        var news = await News.deleteOne({_id: newsid});
-        await User.update({_id: user._id}, { $pull: { news: newsid}})
-        res.json(news)
-      }
+      
+      var news = await News.deleteOne({_id: newsid});
+      await User.update({_id: user._id}, { $pull: { news: newsid}})
+      res.json({message: "Deleted Successfully!!"}).status(200)
+      
     } catch (error) {
-      res.status(error.statusCode).json({message: error.message})
+      res.status(500).json({message: error.message})
     }
   }
 }

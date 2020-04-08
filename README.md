@@ -39,8 +39,7 @@ E-balllot is based on the online voting system. It's is fully secure to register
 
 * Upload Nominees and Voter List
   
-  1) POST /nominees/:electionid
-  2) POST /voter/:electionid
+  1) POST /file/:electionid
 
 * Blog 
 
@@ -57,8 +56,8 @@ E-balllot is based on the online voting system. It's is fully secure to register
       1) POST /blog/like/:blogid
     
   GET
-  1) GET /blog/view
-  2) GET /election/blog/view/:electionid
+  1) GET /blog/:blogid
+  2) GET /election/blog/:electionid
 
 * NEWS
 
@@ -73,8 +72,7 @@ E-balllot is based on the online voting system. It's is fully secure to register
 
 * Invitation
 
-  1) POST /nomineeinvitation/:electionid
-  2) POST /voterinvitation/:electionid
+  1) POST /file/invitation/:electionid
 
 * Voter
 

@@ -10,9 +10,11 @@ module.exports = {
       var nomineeid = req.params.nomineeid;
       var userid = req.user;
       var electionid = req.params.electionid;
-      
+      // Check the Election is created or not
       var election = await Election.findById({_id: electionid})
-
+      if(!election){
+        return res.json({message: "Election is not yet created"}).statusCode(404);
+      }
       let date = new Date();
       var  month = date.getMonth()+1;
       var tdate = date.getDate();
@@ -41,27 +43,24 @@ module.exports = {
       let electionstartdate = new Date(election.start_time);
       let electionenddate = new Date(election.end_time);
       let currentdate = new Date(today);
+      console.log("Election start: "+electionstartdate);
+      console.log("Current Date: "+currentdate)
       // Before Voting to check the Election link is expire or not
       if(currentdate.getTime() > electionstartdate.getTime()){
         if(electionenddate.getTime() < currentdate.getTime()){
-          let error = new Error('Election is Expired');
-          error.statusCode = 401;
-          throw error
+          return res.json({message: "ELection is Expired"}).statusCode(409);
         }
       }
       else{
-        let error = new Error('Election is not yet started');
-        error.statusCode = 401;
-        throw error
+        return res.json({message: "Election is not yet started"}).status(409);
       }
       // Check the user name is in the list for the praticular election
       var people = await People.findOne({_id: userid, electionid: electionid})
       
       if(!people){
-        let error = new Error('Your name is not in');
-        error.statusCode = 401;
-        throw error
+        res.json({message: "Your name is not in the list"}).status(500)
       }
+
       // Check the voter is already voted or not
       if(people.isVoted === false){
         var votelist = await Votelist({});
@@ -73,16 +72,15 @@ module.exports = {
         await votelist.save();
 
         await People.update({_id:userid},{isVoted: true});
-        res.send('Voted SUccessfully').status(200)
+        
+        return res.send('Voted SUccessfully').status(200)
       }
       else{
-        let error = new Error('You Already Voted');
-        error.statusCode = 401;
-        throw error
+        return res.json({message: 'you Already Votes'}).statusCode(500);
       }
 
     } catch (error) {
-      res.json({message: error.message}).status(error.statusCode)
+      res.json({message: error.message}).status(500)
     }
   }
 }

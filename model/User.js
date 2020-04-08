@@ -21,7 +21,7 @@ var userSchema = new Schema(
       required: true,
       trim: true
     },
-    Address: {
+    address: {
       type: String,
       required: true,
       trim: true
@@ -52,12 +52,6 @@ var userSchema = new Schema(
       {
         type: Schema.Types.ObjectId,
         ref: "blog"
-      }
-    ],
-    comments:[
-      {
-        type: Schema.Types.ObjectId,
-        ref: "comment"
       }
     ],
     news:[
