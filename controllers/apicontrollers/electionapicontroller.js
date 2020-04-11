@@ -1,7 +1,7 @@
 const Election = require('../../model/Election');
 const People = require('../../model/People');
 const Blog = require('../../model/Blog');
-const comment = require('../../model/Comment');
+const Profile = require('../../model/Profile');
 const News = require('../../model/News');
 const User = require('../../model/User');
 const isvalid = require('../../files/validdate');
@@ -9,6 +9,10 @@ const isvalid = require('../../files/validdate');
 module.exports={
   async createElection(req, res){
     try {
+      var user = req.user;
+      if(user.emailOTP){
+        return res.send('First verify')
+      }
       var checkEname = await Election.findOne({ename: req.body.ename});
       if(checkEname){
         let error = new Error('Election Name is already Registered')
@@ -23,7 +27,7 @@ module.exports={
         throw error
       }
 
-      var user = req.user;
+      
       var users = await User.findOne({ _id: user._id});
       if(!users){
         let errror = new Error('Your ara not a authriozed Person to Create a Election')
@@ -157,8 +161,9 @@ module.exports={
       await Blog.deleteMany({electionid: electionid});
       
       await News.deleteMany({electionid: electionid});
-
+      
       await User.updateOne({_id:user._id}, { $pull: { electionid: electionid }})
+      
       return res.json({message: "Election Deleted Successfully!"}).send(200)
 
     } catch (error) {
