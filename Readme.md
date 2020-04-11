@@ -77,3 +77,7 @@ E-balllot is based on the online voting system. It's is fully secure to register
 * Voter
 
   1) POST /voter/:nomineeid
+  
+* Profile
+  
+  1) PATCH /profile/update
