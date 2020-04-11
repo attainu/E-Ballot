@@ -1,8 +1,7 @@
 var mongoose = require('mongoose');
-var dotenv = require('dotenv');
-dotenv.config();
+
 mongoose
-  .connect(process.env.MONGO_CONNECT, {
+  .connect("mongodb+srv://eballot_system:nsU9vl4mWdq3ziVw@e-ballot-jlsun.mongodb.net/Eballot?retryWrites=true&w=majority", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true
